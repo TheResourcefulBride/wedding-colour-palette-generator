@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wedding Colour Palette Generator | The Resourceful Bride</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --forest: #334331;
+      --cream: #FAF7F2;
+      --gold: #B8960C;
+      --gold-light: #D4AF37;
+      --pale: #f0ebe2;
+      --text: #2a2a2a;
+      --muted: #7a7a6e;
+      --border: rgba(51,67,49,0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; min-height: 100vh; }
+
+    header { background: var(--forest); color: var(--cream); text-align: center; padding: 28px 20px 24px; }
+    .brand-eyebrow { font-weight: 300; letter-spacing: 0.22em; font-size: 0.68rem; color: var(--gold-light); text-transform: uppercase; margin-bottom: 8px; }
+    header h1 { font-family: Baskerville, 'Baskerville Old Face', 'Goudy Old Style', Georgia, serif; font-weight: normal; font-size: clamp(1.5rem,5vw,2.1rem); letter-spacing: 0.04em; color: var(--cream); line-height: 1.2; }
+    .header-sub { font-size: 0.74rem; letter-spacing: 0.1em; color: rgba(250,247,242,0.52); margin-top: 8px; }
+    .gold-line { width: 40px; height: 1px; background: var(--gold); margin: 14px auto 0; }
+
+    main { max-width: 700px; margin: 0 auto; padding: 28px 16px 60px; }
+
+    .mode-tabs { display: flex; background: var(--pale); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 28px; }
+    .mode-tab { flex: 1; padding: 12px 8px; font-family: 'Jost', sans-serif; font-weight: 400; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all 0.2s; border-right: 1px solid var(--border); }
+    .mode-tab:last-child { border-right: none; }
+    .mode-tab.active { background: var(--forest); color: var(--cream); }
+
+    .section-label { font-weight: 400; letter-spacing: 0.18em; font-size: 0.64rem; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+    .colour-input-row { display: flex; align-items: center; gap: 14px; background: white; border: 1px solid var(--border); border-radius: 3px; padding: 14px 16px; margin-bottom: 22px; }
+    .color-swatch-input { width: 46px; height: 46px; border: none; border-radius: 2px; cursor: pointer; padding: 2px; background: none; }
+    .hex-input { font-size: 0.95rem; letter-spacing: 0.08em; border: 1px solid var(--border); padding: 9px 12px; border-radius: 2px; background: var(--cream); color: var(--text); width: 130px; outline: none; font-family: 'Jost', sans-serif; }
+    .hex-input:focus { border-color: var(--forest); }
+    .shuffle-btn { margin-left: auto; background: none; border: 1px solid var(--gold); color: var(--gold); font-family: 'Jost', sans-serif; font-size: 0.67rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 8px 14px; border-radius: 2px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .shuffle-btn:hover { background: var(--gold); color: white; }
+
+    .pill-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 22px; }
+    .pill { font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.11em; text-transform: uppercase; padding: 7px 14px; border: 1px solid var(--border); background: white; color: var(--muted); border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .pill.active, .pill:hover { border-color: var(--forest); background: var(--forest); color: var(--cream); }
+
+    .generate-btn { width: 100%; padding: 14px; background: var(--forest); color: var(--cream); border: none; border-radius: 3px; font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; margin-bottom: 28px; }
+    .generate-btn:hover { background: #1e291d; }
+
+    .palette-result { display: none; }
+    .palette-result.visible { display: block; animation: fadeUp 0.35s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+    .result-name { font-family: Baskerville, 'Baskerville Old Face', Georgia, serif; font-size: 1.3rem; font-weight: 400; color: var(--text); margin-bottom: 3px; }
+    .result-sub { font-size: 0.63rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+
+    /* PROPORTIONAL STRIP — each colour is one column (swatch on top, label below) so alignment is structurally guaranteed on any screen width */
+    .palette-block { display: flex; border-radius: 3px; overflow: hidden; box-shadow: 0 2px 14px rgba(0,0,0,0.09); margin-bottom: 14px; border: 1px solid var(--border); }
+
+    .p-col { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--border); }
+    .p-col:last-child { border-right: none; }
+
+    .p-swatch { height: 80px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; cursor: pointer; transition: filter 0.15s; flex-shrink: 0; }
+    .p-swatch:hover { filter: brightness(1.08); }
+    .p-hex-label { font-size: 0.5rem; letter-spacing: 0.03em; font-family: 'Jost', sans-serif; opacity: 0; transition: opacity 0.2s; text-shadow: 0 1px 4px rgba(0,0,0,0.4); text-align: center; padding: 0 2px; line-height: 1.3; }
+    .p-swatch:hover .p-hex-label { opacity: 1; }
+
+    .p-legend-cell { padding: 5px 2px; font-size: 0.48rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); text-align: center; background: white; line-height: 1.4; flex: 1; overflow: hidden; white-space: normal; word-break: break-word; }
+    .legend-dot { display: block; width: 6px; height: 6px; border-radius: 50%; margin: 0 auto 3px; }
+
+    .copy-hint { font-size: 0.66rem; color: var(--muted); letter-spacing: 0.07em; text-align: center; margin-bottom: 16px; }
+
+    .hex-grid { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+    .hex-pill { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 2px; padding: 7px 12px; cursor: pointer; transition: border-color 0.15s; }
+    .hex-pill:hover { border-color: var(--forest); }
+    .hex-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+    .hex-pill-text { display: flex; flex-direction: column; gap: 1px; }
+    .hex-pill-code { font-family: 'Jost', sans-serif; font-size: 0.73rem; letter-spacing: 0.1em; color: var(--text); }
+    .hex-pill-role { font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+    .palette-note { background: white; border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 2px; padding: 14px 16px; margin-bottom: 10px; }
+    .palette-note p { font-size: 0.79rem; line-height: 1.68; color: var(--muted); }
+    .palette-note strong { font-weight: 500; color: var(--text); font-family: Baskerville, 'Baskerville Old Face', Georgia, serif; font-size: 0.96rem; }
+
+    /* CURATED */
+    #curated-mode { display: none; }
+    .filter-row-curated { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-select { font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; background: white; border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 2px; appearance: none; cursor: pointer; outline: none; flex: 1; min-width: 140px; }
+    .filter-select:focus { border-color: var(--forest); }
+
+    .palette-card { background: white; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; transition: box-shadow 0.2s; }
+    .palette-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .card-strip { display: flex; height: 72px; }
+    .card-swatch { flex: 1; cursor: pointer; transition: flex 0.2s; }
+    .card-swatch:hover { flex: 1.4; }
+    .card-body { padding: 14px 16px 16px; }
+    .card-name { font-family: Baskerville, 'Baskerville Old Face', Georgia, serif; font-size: 1.05rem; font-weight: 400; color: var(--text); margin-bottom: 2px; }
+    .card-era { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 7px; }
+    .card-desc { font-size: 0.78rem; line-height: 1.6; color: var(--muted); }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { font-size: 0.61rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--forest); background: rgba(51,67,49,0.07); padding: 4px 9px; border-radius: 2px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--forest); color: var(--cream); font-family: 'Jost', sans-serif; font-size: 0.74rem; letter-spacing: 0.1em; padding: 11px 22px; border-radius: 2px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 999; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    footer { text-align: center; padding: 28px 16px; background: var(--forest); color: rgba(250,247,242,0.5); font-size: 0.72rem; letter-spacing: 0.1em; }
+    footer a { color: var(--gold-light); text-decoration: none; }
+    footer strong { color: var(--cream); font-weight: 400; }
+
+    @media (max-width: 480px) {
+      .p-swatch { min-height: 78px; }
+      .card-strip { height: 58px; }
+      .p-legend-cell { font-size: 0.5rem; padding: 6px 3px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand-eyebrow">The Resourceful Bride</div>
+  <h1>Wedding Colour<br>Palette Generator</h1>
+  <div class="header-sub">2026 &amp; 2027 trends · Timeless classics · Tap any swatch to copy</div>
+  <div class="gold-line"></div>
+</header>
+
+<main>
+  <div class="mode-tabs" style="margin-top:24px;">
+    <button class="mode-tab active" onclick="switchMode('colour')">Start with a Colour</button>
+    <button class="mode-tab" onclick="switchMode('curated')">Browse Curated Palettes</button>
+  </div>
+
+  <!-- COLOUR TAB -->
+  <div id="colour-mode">
+    <div class="section-label">Your base colour</div>
+    <div class="colour-input-row">
+      <input type="color" class="color-swatch-input" id="colorPicker" value="#f1fafa" oninput="onPickerChange(this.value)">
+      <input type="text" class="hex-input" id="hexInput" value="#f1fafa" maxlength="7" oninput="onHexChange(this.value)" placeholder="#000000">
+      <button class="shuffle-btn" onclick="doShuffle()">✦ Shuffle</button>
+    </div>
+
+    <div class="section-label">Aesthetic</div>
+    <div class="pill-row" id="aestheticPills">
+      <button class="pill active" data-val="romantic"    onclick="selectPill(this)">Soft Romantic</button>
+      <button class="pill"        data-val="pastel"      onclick="selectPill(this)">Pastel &amp; Dreamy</button>
+      <button class="pill"        data-val="moodydark"   onclick="selectPill(this)">Dark &amp; Moody</button>
+      <button class="pill"        data-val="modern"      onclick="selectPill(this)">Modern &amp; Clean</button>
+      <button class="pill"        data-val="earthy"      onclick="selectPill(this)">Earthy &amp; Natural</button>
+      <button class="pill"        data-val="retrovibe"   onclick="selectPill(this)">Retro &amp; Joyful</button>
+      <button class="pill"        data-val="quietluxury" onclick="selectPill(this)">Quiet Luxury</button>
+    </div>
+
+    <button class="generate-btn" onclick="generatePalette()">Generate My Palette</button>
+
+    <div class="palette-result" id="paletteResult">
+      <div class="result-name" id="resultName"></div>
+      <div class="result-sub"  id="resultSub"></div>
+      <div class="palette-block" id="paletteBlock"></div>
+      <div class="copy-hint">Hover to reveal hex · Tap any swatch to copy</div>
+      <div class="hex-grid"   id="hexGrid"></div>
+      <div class="palette-note" id="paletteNote"></div>
+    </div>
+  </div>
+
+  <!-- CURATED TAB -->
+  <div id="curated-mode">
+    <div class="section-label">Filter by what you need</div>
+    <div class="filter-row-curated">
+      <select class="filter-select" id="filterEra"    onchange="renderCurated()">
+        <option value="all">All eras</option>
+        <option value="timeless">Timeless Classics</option>
+        <option value="2026">Trending 2026</option>
+        <option value="2027">2027 Direction</option>
+        <option value="modern">Modern 2020s</option>
+        <option value="vintage">Vintage-inspired</option>
+      </select>
+      <select class="filter-select" id="filterMood"   onchange="renderCurated()">
+        <option value="all">All aesthetics</option>
+        <option value="romantic">Romantic</option>
+        <option value="moody">Dark &amp; Moody</option>
+        <option value="modern">Modern &amp; Clean</option>
+        <option value="earthy">Earthy &amp; Natural</option>
+        <option value="retro">Retro &amp; Joyful</option>
+        <option value="quietluxury">Quiet Luxury</option>
+        <option value="celestial">Celestial &amp; Ethereal</option>
+        <option value="tropical">Bright &amp; Tropical</option>
+        <option value="rustic">Rustic &amp; Boho</option>
+      </select>
+      <select class="filter-select" id="filterSeason" onchange="renderCurated()">
+        <option value="all">Any season</option>
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="autumn">Autumn</option>
+        <option value="winter">Winter</option>
+      </select>
+    </div>
+    <div id="curatedGrid"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast">Copied ✓</div>
+
+<footer>
+  <div>Research-led colour guidance for modern brides</div>
+  <div style="margin-top:6px;"><strong>The Resourceful Bride</strong> · <a href="https://www.instagram.com/theresourcefulbride" target="_blank">@theresourcefulbride</a></div>
+</footer>
+
+<script>
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function hexToHsl(hex){
+  let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  let max=Math.max(r,g,b),min=Math.min(r,g,b),h=0,s=0,l=(max+min)/2;
+  if(max!==min){let d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h/=6;}
+  return[h*360,s*100,l*100];
+}
+function hslToHex(h,s,l){
+  h=((h%360)+360)%360;s=Math.max(0,Math.min(100,s));l=Math.max(0,Math.min(100,l));s/=100;l/=100;
+  let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+  const t=v=>Math.round((v+m)*255).toString(16).padStart(2,'0');return`#${t(r)}${t(g)}${t(b)}`;
+}
+function isLight(hex){return(parseInt(hex.slice(1,3),16)*299+parseInt(hex.slice(3,5),16)*587+parseInt(hex.slice(5,7),16)*114)/1000>128;}
+function cl(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function copyHex(hex){
+  navigator.clipboard.writeText(hex).catch(()=>{const el=document.createElement('textarea');el.value=hex;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);});
+  const t=document.getElementById('toast');t.textContent=`${hex} copied ✓`;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1900);
+}
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let currentHex='#f1fafa', currentAesthetic='romantic';
+function onPickerChange(v){currentHex=v;document.getElementById('hexInput').value=v;}
+function onHexChange(v){if(/^#[0-9A-Fa-f]{6}$/.test(v)){currentHex=v;document.getElementById('colorPicker').value=v;}}
+function selectPill(el){document.querySelectorAll('#aestheticPills .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');currentAesthetic=el.dataset.val;}
+
+const trendAnchors=[
+  '#3D3560','#D4A898','#1A6A78','#D4407A','#6B3F6B','#5A6B3A','#8C4830',
+  '#6B1F1F','#2A4A2A','#1A3A8C','#4A2E1A','#8A9A2A','#C86880','#2A2440',
+  '#C4884A','#4A6E8A','#8C7A2E','#6A1A28','#E87830','#1A4A2A','#C4A898','#223149'
+];
+function doShuffle(){
+  const h=trendAnchors[Math.floor(Math.random()*trendAnchors.length)];
+  currentHex=h;document.getElementById('colorPicker').value=h;document.getElementById('hexInput').value=h;
+}
+
+// ── ROLES & WIDTHS ─────────────────────────────────────────────────────────────
+const ROLES     =['Dominant','Secondary','Theme','Depth','Metallic'];
+const ROLE_USES =['Linens · signs · stationery','Florals · bridesmaids','Décor<br>accents','Details','Cutlery<br>frames'];
+const WIDTHS    =[33,24,18,12,13]; // flex proportions
+
+// ── CORRECTED METALLICS ────────────────────────────────────────────────────────
+const M={
+  gold:  ['#C8A84B','#B8960C','#D4AF37'],
+  silver:['#C0C4C8','#B8BCC0','#D0D4D8'],   // true silver — neutral grey
+  chrome:['#9E9E9E','#ABABAB','#C0C0C0'],   // chrome — cool mid-grey
+  copper:['#B87333','#C8834A','#A06030'],   // copper — warm orange-brown
+  rose:  ['#C09080','#B88070','#D0A090'],   // rose gold
+};
+function pm(pool){return pool[Math.floor(Math.random()*pool.length)];}
+
+// ── AESTHETIC RECIPES ──────────────────────────────────────────────────────────
+const recipes={
+  romantic:{
+    label:'Soft Romance',sub:'Warm, luminous, and tender',
+    note:'Your chosen colour sits at the centre. Around it: a very light neutral that reads almost like a warm white, a softer mid-tone version of your colour, and a slightly deeper companion that stays close in tone rather than creating sharp contrast. Everything moves in the same direction — nothing competes. Works in garden, vineyard, and intimate indoor venues where the florals and candlelight do the talking.',
+    tip:'Rose gold or antique gold completes this palette naturally. Chrome pulls the warmth out and should be avoided.',
+    build([h,s,l]){
+      const dominant  = hslToHex(h+8,  cl(s*.18,3,18),  cl(l+30,80,97));
+      const secondary = hslToHex(h+12, cl(s*.5,10,55),  cl(l+17,55,84));
+      const theme     = hslToHex(h,s,l);
+      const depth     = hslToHex(h+20, cl(s*.55,12,55), cl(l+4,28,72));
+      return [dominant, secondary, theme, depth, pm(M.rose)];
+    }
+  },
+  pastel:{
+    label:'Pastel & Dreamy',sub:'Two soft hues, harmonised at high lightness',
+    note:'Your chosen colour plus a companion from the other side of the colour wheel — both kept so light and soft that they harmonise rather than clash. Think blush with dusty blue, mint with peach, sage with lavender. The dominant and secondary are very light tints that let both colours breathe. The contrast is gentle and comes from tone rather than darkness. Best for spring garden weddings, château venues, and loose mixed florals.',
+    tip:'A washed rose gold or dusty silver suits this palette best. Bright gold is too heavy for the softness of these tones.',
+    build([h,s,l]){
+      const dominant  = hslToHex(h,    cl(s*.6,20,70),  cl(l+22,90,98));
+      const secondary = hslToHex(h+8,  cl(s*.55,18,62), cl(l+12,80,92));
+      const theme     = hslToHex(h,s,l);
+      const depth     = hslToHex(h+120,cl(s*.45,15,55), cl(l+3,72,92));
+      return [dominant, secondary, theme, depth, pm(M.rose)];
+    }
+  },
+  moodydark:{
+    label:'Dark & Moody',sub:'Atmospheric, rich, and dramatic',
+    note:'Every moody palette has a pale anchor — a light, almost-neutral tone that makes the darker colours readable rather than heavy. Your chosen colour sits in the middle. The depth is rich and saturated, not simply dark, which is what gives moody palettes their luxurious quality. The result is a palette with genuine atmosphere. Best for autumn and winter weddings, castle venues, barn receptions, and evening ceremonies.',
+    tip:'Chrome or gunmetal is the right metallic — it sharpens the atmosphere. Warm gold softens the drama too much.',
+    build([h,s,l]){return[hslToHex(h,cl(s*.12,2,14),cl(l+50,82,96)),hslToHex(h+15,cl(s*.8,18,72),cl(l+15,30,62)),hslToHex(h,s,l),hslToHex(h-15,cl(s*.7,15,60),cl(l-18,8,35)),pm(M.chrome)];}
+  },
+  modern:{
+    label:'Modern & Clean',sub:'High contrast, graphic, and precise',
+    note:'Your chosen colour anchored between a near-white at one end and a near-black at the other. The secondary is a lighter, quieter version sitting in between. The drama comes entirely from light versus dark — not from introducing additional colours. Very strong photographically. Suits city hotels, loft and gallery venues, and evening receptions where the design should speak without decoration.',
+    tip:'Silver is the natural metallic for this aesthetic. Keep florals minimal and structural — a single stem in a tall vase over a loose arrangement.',
+    build([h,s,l]){return[hslToHex(h,cl(s*.15,2,18),cl(l+42,88,97)),hslToHex(h,cl(s*.35,5,35),cl(l+30,65,88)),hslToHex(h,s,l),hslToHex(h,cl(s*.4,5,35),cl(l-45,5,22)),pm(M.silver)];}
+  },
+  earthy:{
+    label:'Earthy & Natural',sub:'Grounded, textural, landscape-led',
+    note:'Whatever colour you choose, the surrounding tones are pulled toward the warm, natural zone — linen, stone, terracotta, aged wood. Your colour stays exactly as you chose it; everything around it shifts to ground it in the landscape. This is how earthy wedding palettes work in practice: your chosen colour gives the palette its identity, and the earthy tones make it feel rooted in nature. Works at countryside, vineyard, barn, and outdoor venues.',
+    tip:'Copper or bronze is the right metallic — warm, unpolished, and natural. Linen, wood, and rattan textures carry as much weight as the colours themselves.',
+    build([h,s,l]){
+      const warmPull = h > 60 && h < 300 ? 0.4 : 0.1;
+      const dH = Math.round(h + (32 - h) * warmPull);
+      const dominant  = hslToHex(dH,   cl(s*.3, 5,32),  cl(l+31,75,96));
+      const secondary = hslToHex(dH+5, cl(s*.55,10,52), cl(l+17,48,80));
+      const theme     = hslToHex(h,s,l);
+      const depth     = hslToHex(dH-8, cl(s*.6, 12,50), cl(l-12,22,58));
+      return [dominant, secondary, theme, depth, pm(M.copper)];
+    }
+  },
+  retrovibe:{
+    label:'Retro & Joyful',sub:'70s warmth, vibrant nostalgia',
+    note:'Your chosen colour sits at the centre. A light warm neutral and a richer, slightly darker neighbour surround it on one side. Then the depth colour lands somewhere unexpected — a deliberate jump that creates the joyful tension that makes retro palettes feel so alive. Nothing about this palette is safe, and that is the point. For couples who want their wedding to feel like a celebration from first look to last dance.',
+    tip:'Copper and bronze are the natural metallics here — warm, slightly burnished, and never refined. Avoid cool metals entirely.',
+    build([h,s,l]){
+      const dominant  = hslToHex(h,     cl(s*.3,5,30),   cl(l+28,85,97));
+      const secondary = hslToHex(h-12,  cl(s*.95,40,92), cl(l-9,42,75));
+      const theme     = hslToHex(h,s,l);
+      const depth     = hslToHex(h+50,  cl(s*.45,18,55), cl(l-5,32,78));
+      return [dominant, secondary, theme, depth, pm(M.copper)];
+    }
+  },
+  quietluxury:{
+    label:'Quiet Luxury',sub:'Monochromatic layering, texture over colour',
+    note:'Four tones of your chosen colour — from palest whisper to deepest shadow — plus a single metallic accent. No second colour, no contrast, no statement. The Quiet Luxury approach works because it forces texture to do all the work: the difference between a silk dress, a linen tablecloth, a wax candle, and cold stone. Works in any venue confident enough to let subtlety lead.',
+    tip:'One metallic only — warm gold for warm-toned palettes, silver for cool. Never both. The metallic is the only accent this palette needs or wants.',
+    build([h,s,l]){const met=h>160&&h<320?pm(M.silver):pm(M.gold);return[hslToHex(h,cl(s*.18,3,20),cl(l+38,86,97)),hslToHex(h,cl(s*.38,8,38),cl(l+20,68,84)),hslToHex(h,s,l),hslToHex(h,cl(s*.75,15,65),cl(l-22,24,50)),met];}
+  },
+  celestial:{
+    label:'Celestial & Ethereal',sub:'Future Dusk · Aquatic Awe · iridescent',
+    note:'Inspired by the 2026 celestial direction — the palette that replaces classic navy with something more atmospheric and otherworldly. Your colour is drawn toward cool, blue-violet territory. The lightest tone is almost white with a faint cool shimmer; the darkest goes deep but keeps the same cool quality throughout. Iridescent stationery, reflective table surfaces, and chrome details are what bring this palette to life.',
+    tip:'Chrome is the only metallic that works here. Gold reads as too warm; silver is too flat. Chrome has the cool, futuristic quality this palette is built around.',
+    build([h,s,l]){return[hslToHex(cl(h+5,200,280),cl(s*.15,5,20),cl(l+38,88,97)),hslToHex(cl(h+15,220,290),cl(s*.45,18,50),cl(l+18,65,82)),hslToHex(h,s,l),hslToHex(cl(h+20,230,290),cl(s*.55,18,52),cl(l-38,6,24)),pm(M.chrome)];}
+  }
+};
+
+// ── GENERATE ────────────────────────────────────────────────────────────────────
+function generatePalette(){
+  const r=recipes[currentAesthetic]||recipes.romantic;
+  const colors=r.build(hexToHsl(currentHex));
+  renderResult({name:r.label,sub:r.sub,colors,note:r.note,tip:r.tip});
+}
+
+function renderResult(r){
+  document.getElementById('resultName').textContent=r.name;
+  document.getElementById('resultSub').textContent=r.sub;
+
+  // Build as columns — each colour gets one div containing its swatch + legend cell
+  const block=document.getElementById('paletteBlock');
+  block.innerHTML='';
+
+  r.colors.forEach((c,i)=>{
+    const col=document.createElement('div');
+    col.className='p-col';
+    col.style.flex=WIDTHS[i];
+
+    // swatch
+    const sw=document.createElement('div');
+    sw.className='p-swatch';
+    sw.style.background=c;
+    sw.onclick=()=>copyHex(c);
+    sw.title=c;
+    const lbl=document.createElement('span');
+    lbl.className='p-hex-label';
+    lbl.style.color=isLight(c)?'#222':'#fff';
+    lbl.textContent=c;
+    sw.appendChild(lbl);
+
+    // legend cell
+    const lc=document.createElement('div');
+    lc.className='p-legend-cell';
+    lc.innerHTML=`<span class="legend-dot" style="background:${c}"></span>${ROLES[i]}<br>${ROLE_USES[i]}`;
+
+    col.appendChild(sw);
+    col.appendChild(lc);
+    block.appendChild(col);
+  });
+
+  // Hex grid
+  document.getElementById('hexGrid').innerHTML=r.colors.map((c,i)=>`
+    <div class="hex-pill" onclick="copyHex('${c}')">
+      <div class="hex-dot" style="background:${c}"></div>
+      <div class="hex-pill-text">
+        <span class="hex-pill-code">${c}</span>
+        <span class="hex-pill-role">${ROLES[i]}</span>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('paletteNote').innerHTML=`<p>${r.note}<br><br><strong>Metallic &amp; styling note</strong><br>${r.tip}</p>`;
+
+  const el=document.getElementById('paletteResult');
+  el.classList.remove('visible');
+  void el.offsetWidth;
+  el.classList.add('visible');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── CURATED PALETTES (122 total) ────────────────────────────────────────────────
+const palettes=[
+  // ── ORIGINAL 22 ─────────────────────────────────────────────────────────────
+  {name:"White & Sage Classic",era:"timeless",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#FAFAF5","#B5C4A8","#7A9970","#C9B88A","#E8E2D4"],desc:"The most enduringly popular wedding palette. White for new beginnings, sage for growth and harmony. Works in any season and any venue, from loose garden florals to formal manor arrangements.",tags:["Any venue","Any season","Florals","Classic"]},
+  {name:"Blush & Dusty Blue",era:"timeless",mood:"romantic",seasons:["spring","summer"],colors:["#EFC4C0","#A8B8C9","#FAF5EF","#C9A882","#D4AF37"],desc:"Tender and soft, this combination flatters all skin tones. The dusty blue grounds the sweetness of blush with something more settled. Works equally well at garden, indoor, and formal venues.",tags:["Garden","Spring","Romantic","Timeless"]},
+  {name:"Navy & Gold Formal",era:"timeless",mood:"modern",seasons:["autumn","winter"],colors:["#1B2A4A","#D4AF37","#F5F0E8","#8C9BAA","#A89060"],desc:"Elegant and dependable. Navy reads like black but warmer; gold adds the sense of occasion without overcomplicating things. Strong for evening receptions, historic venues, and city hotels.",tags:["Evening","City","Formal","Ballroom"]},
+  {name:"Black & White Regal",era:"timeless",mood:"modern",seasons:["autumn","winter"],colors:["#1A1A1A","#F5F5F0","#C8A84B","#4A4A3F","#D4D0C8"],desc:"One of the most timelessly chic wedding palettes. Looks modern or classically formal depending entirely on how it is styled. Gold, silver, or chrome keeps it from feeling stark.",tags:["Evening","Urban","Formal","High contrast"]},
+  {name:"Ivory Monochrome",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#FFFFF0","#F5EDD8","#E8DCC0","#D4C8A8","#C8A84B"],desc:"Five tones of ivory to cream, relying entirely on texture to create depth. Linen, silk, candlelight, and soft greenery do all the work. Utterly quiet, completely intentional.",tags:["Any venue","Texture-led","Classic","Refined"]},
+  {name:"Gray, Green & Cream",era:"timeless",mood:"earthy",seasons:["spring","autumn"],colors:["#9A9E94","#7A9970","#F0EBE0","#C8C4B8","#4A5A42"],desc:"Muted and considered. Cool gray and warm cream anchored with natural green create a calm backdrop that lets textural details — linen, wood, stone — take the lead.",tags:["Rustic","Vintage","Countryside","Understated"]},
+  {name:"Earthy Neutrals",era:"timeless",mood:"earthy",seasons:["spring","summer","autumn"],colors:["#6B4E3D","#B8A080","#E8E0CC","#C8A870","#B87333"],desc:"Warm, luxurious, and grounded. Mocha, camel, sand, and ivory flow seamlessly together. Mocha Mousse — Pantone's 2025 direction — sits at the heart of this deeply wearable palette.",tags:["Any venue","Warm","Luxurious","Versatile"]},
+  {name:"Plum, Olive & Stone",era:"2026",mood:"moody",seasons:["autumn","winter"],colors:["#6B3F6B","#5A6B3A","#8C7B6E","#3A2A3A","#9E9E9E"],desc:"Pinterest's breakout palette for 2026. Searches for plum and olive wedding combinations rose dramatically year-on-year. Rich and nature-driven, this suits rustic barns, historic estates, and outdoor autumn weddings equally.",tags:["2026 Trend","Moody","Autumn","Estate venues"]},
+  {name:"Red Wine & Forest",era:"2026",mood:"moody",seasons:["autumn","winter"],colors:["#6B1F1F","#2A4A2A","#E8E0D0","#4A2A2A","#9E9E9E"],desc:"Deep burgundy and forest green: luxurious and versatile. Works boldly on its own or softened with ivory. Particularly suited to castle venues, barn receptions, and evening ceremonies.",tags:["2026 Trend","Castle","Barn","Autumn/Winter"]},
+  {name:"Celestial Noir",era:"2026",mood:"celestial",seasons:["autumn","winter"],colors:["#D0D4E0","#8898B0","#4A4870","#1A1830","#C0C0C0"],desc:"Built around Future Dusk — WGSN's colour of the year for 2026 — this palette sits between deep blue and purple, evoking a celestial, after-dark atmosphere. Positioned as the 2026 successor to classic navy.",tags:["2026 Trend","Dramatic","Evening","Futuristic"]},
+
+  {name:"Cobalt & Chrome",era:"2026",mood:"modern",seasons:["spring","summer","autumn"],colors:["#F0F0F5","#8090A8","#1A3A8C","#1A1A2A","#C0C0C0"],desc:"Cobalt is singled out across 2026 colour trend reports for maximum photographic impact. Graphic and striking in signage, candles, and florals. Pairs with chrome and clean white.",tags:["2026 Trend","Bold","City","Photogenic"]},
+  {name:"Organic Bloom",era:"2026",mood:"earthy",seasons:["spring","summer"],colors:["#F0E8D8","#D4A898","#8A9E70","#A87860","#B87333"],desc:"Built around Transcendent Pink — WGSN's 2026 elevated neutral — this is terracotta-lite: earthy, inclusive, and calm. Paired with sage green and ochre for a grounded, quietly luxurious feel.",tags:["2026 Trend","Earthy","Quiet Luxury","Spring"]},
+  {name:"Western Gothic",era:"2026",mood:"moody",seasons:["autumn","winter"],colors:["#E8DCC8","#8C4830","#2A5A38","#1A1A18","#B87333"],desc:"A rising Pinterest search category for 2026: dark base colours punctuated by warm rustic accents. Black and deep emerald anchored by terracotta and copper. Rugged, vintage, and unmistakably intentional.",tags:["2026 Trend","Pinterest","Rustic","Dark"]},
+  {name:"Chocolate & Chartreuse",era:"2026",mood:"earthy",seasons:["spring","summer","autumn"],colors:["#E8E0D0","#8A9A2A","#4A2E1A","#8C6A4A","#B87333"],desc:"An emerging 2026 pairing that surprises. The warm depth of chocolate grounds the energy of chartreuse. Mocha Mousse flows from 2025; this is its more daring next step.",tags:["2026 Trend","Earthy","Unexpected","Modern"]},
+  {name:"Expanded Pinks",era:"2026",mood:"romantic",seasons:["spring","summer"],colors:["#F0D0DC","#E8A0B0","#C86880","#8A4060","#C09080"],desc:"Pink evolves beyond soft blush in 2026. Couples are embracing the full pink range — baby pink, dusty rose, brighter cool-toned pinks — often paired with sage and olive greens for grounding.",tags:["2026 Trend","Romantic","Bold","Spring"]},
+  {name:"Island Citrus",era:"2026",mood:"tropical",seasons:["summer"],colors:["#F5E8C8","#A8C880","#E87830","#5A8A3A","#C86840"],desc:"Pinterest's tropical couture palette for 2026, built around Island Citrus: an energetic citrus tone with natural greens and sandy neutrals. Joyful but elevated. Ideal for destination and outdoor summer weddings.",tags:["2026 Trend","Destination","Summer","Joyful"]},
+  {name:"Nature-Led Earth",era:"2027",mood:"earthy",seasons:["spring","summer","autumn"],colors:["#D0C8A8","#B8A880","#8A7A60","#6A5040","#B87333"],desc:"The 2027 direction: palettes drawn directly from the landscape. Sand, stone, terracotta, espresso, and sun-washed tones. Less about trend, more about place. Works beautifully at countryside, vineyard, and barn venues.",tags:["2027 Direction","Earthy","Vineyard","Countryside"]},
+  {name:"Old-World Romance",era:"2027",mood:"moody",seasons:["autumn","winter"],colors:["#E8E0C8","#1A4A2A","#6A1A28","#1A2A4A","#C8A84B"],desc:"Rich, slightly desaturated jewel tones — emerald, deep blue, wine — layered with cream and muted gold. Inspired by historic European estates and Art Deco, without replicating any single era.",tags:["2027 Direction","Estate","European","Historic"]},
+  {name:"Deep Sea Ethereal",era:"2027",mood:"celestial",seasons:["spring","summer"],colors:["#E8F0F0","#A8D0D8","#1A6A78","#3A4A50","#C0C0C0"],desc:"Built around Aquatic Awe — WGSN's key colour for 2027 — this bioluminescence-inspired palette reflects a growing focus on nature and sustainability. Serene, fluid, and quietly futuristic.",tags:["2027 Direction","Aquatic","Nature","Modern"]},
+  {name:"Retro Revival",era:"2027",mood:"retro",seasons:["summer","spring"],colors:["#F0D8C0","#D4A020","#E87840","#D4407A","#B87333"],desc:"Electric Fuchsia meets 70s warmth: WGSN's 2027 maximalist direction. Punchy, neon-adjacent pink alongside mustard yellow and tangerine. For couples who want their wedding to feel like a celebration rather than a ceremony.",tags:["2027 Direction","Retro","Bold","Maximalist"]},
+  {name:"Modern Renaissance",era:"2027",mood:"moody",seasons:["autumn","winter"],colors:["#F5F0E0","#D4AF37","#2A4A2A","#6A1A28","#4A2010"],desc:"Deep cherry, gold, forest green, and ivory: timeless, opulent, and scholarly. The 2027 take on old-world romance with a more formal, art-historical register. Velvet and candlelight are obligatory.",tags:["2027 Direction","Opulent","Historic","Evening"]},
+
+  // ── NEW 100 ──────────────────────────────────────────────────────────────────
+  {name:"White & Sage Estate",era:"timeless",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#F8F4EE","#E4E0D4","#C9D8C0","#8FA588","#C8A66B"],desc:"A refined take on the classic white-and-green palette. The progression from warm ivory through subtle grey-green to sage creates a layered, estate-ready elegance. The antique gold accent lifts it from simple to considered.",tags:["Estate","Garden","Greenhouse","Timeless"]},
+  {name:"Greenhouse Classic",era:"timeless",mood:"earthy",seasons:["spring","summer"],colors:["#FAF7F2","#E0E8DC","#B9CBB0","#6E8C6A","#A88454"],desc:"Inspired by the light inside a glass conservatory in late morning — warm white, botanical greens, and the woody warmth of aged terracotta pots. Feels natural without being rustic.",tags:["Greenhouse","Conservatory","Barn","Natural"]},
+  {name:"City-Chic Black, Gold & Hunter",era:"timeless",mood:"modern",seasons:["autumn","winter"],colors:["#F5F0E8","#1C1C1E","#26412D","#B89A5B","#7C6A4C"],desc:"A palette that reads as metropolitan confidence: ivory, jet black, and deep hunter green anchored by warm gold. Strong enough for a hotel ballroom, refined enough for a city loft. The hunter green stops it from reading as corporate.",tags:["City loft","Hotel ballroom","Dramatic","Formal"]},
+  {name:"Modern Black & Ivory",era:"timeless",mood:"modern",seasons:["autumn","winter","spring","summer"],colors:["#F7F4F0","#E1DED7","#111111","#5C5C63","#C5A57A"],desc:"The most minimal version of black and white — ivory softens the contrast while keeping the editorial edge. Warm taupe accents prevent it from feeling cold. A palette for couples who want impact without drama.",tags:["Gallery","Loft","Rooftop","Editorial"]},
+  {name:"Navy, Gold & Cream",era:"timeless",mood:"modern",seasons:["autumn","winter","spring","summer"],colors:["#F6F2EB","#E2D4BC","#1C2845","#8D7348","#C9A35C"],desc:"A dependable classic for formal occasions. The deep navy anchors warm cream and antique gold tones that have worked in ballrooms, on yachts, and in estate settings for generations. Timeless without being stale.",tags:["Ballroom","Yacht club","Estate","Formal"]},
+  {name:"Navy, Dusty Blue & Dove",era:"timeless",mood:"romantic",seasons:["spring","summer"],colors:["#F7F9FB","#D5DEE9","#9AB0C9","#223149","#C7A76E"],desc:"A softer, more romantic reading of navy — the deep anchor is balanced by a pale dove grey and a hazy dusty blue that stops the palette from feeling formal. Suits coastal and estate venues particularly well.",tags:["Estate","Coastal","Soft","Elegant"]},
+  {name:"Blush & Ivory Garden",era:"timeless",mood:"romantic",seasons:["spring","summer"],colors:["#FDF5F4","#F3D5D3","#F0E3D8","#D9A6A4","#B9896D"],desc:"All the warmth of blush without a single jarring note. The palette moves through ivory, warm pink, and dusty rose with a terracotta-adjacent anchor that keeps it grounded. Made for garden ceremonies with loose, abundant florals.",tags:["Garden","Vineyard","Marquee","Romantic"]},
+  {name:"Blush, Dusty Rose & Sage",era:"timeless",mood:"romantic",seasons:["spring","autumn"],colors:["#FDF4F4","#EBCAD0","#D59CAB","#C5D2C1","#7B8F76"],desc:"The addition of sage green gives this blush palette longevity — the coolness of the sage balances the warmth of dusty rose so the palette reads sophisticated rather than sugary. Popular in barns and garden venues.",tags:["Garden","Barn","Estate","Feminine"]},
+  {name:"Blush & Navy",era:"timeless",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#F8F3F4","#F0CDD2","#1B2944","#C79A9E","#C7A96A"],desc:"A classic contrast pairing — the softness of blush against the authority of deep navy creates a palette that is simultaneously romantic and polished. Works as well in a city ballroom as in a country house.",tags:["City loft","Ballroom","Romantic","Modern"]},
+  {name:"Champagne, Ivory & Taupe",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#F9F3EA","#F0E0CF","#D4C1A9","#A38D75","#705D4A"],desc:"The original quiet luxury palette — before the term existed. Champagne, warm ivory, and deep taupe build a gradient of understated refinement. Suits couples who want their wedding to feel like old money, not new.",tags:["Estate","Hotel","Restaurant","Understated"]},
+  {name:"Greige, White & Olive",era:"modern",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F7F5F2","#E2DED6","#B9B1A6","#6E7B5A","#39422D"],desc:"An architectural palette for an architectural venue. Warm greige and white with a precise olive accent creates a minimal, considered aesthetic that rewards clean lines and structural floral arrangements over loose abundance.",tags:["Modern barn","Architecture","Minimal","Refined"]},
+  {name:"Textured All-White",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#FDFCFA","#F8F5F0","#F2EDE6","#EDE6DC","#E6DDD0"],desc:"Five shades of white, from the coolest near-white to the warmest off-white. The entire palette lives in texture — the difference between a linen tablecloth, a silk dress, a wax candle, and bleached stone. Extraordinary in ornate historic venues.",tags:["Any venue","Historic","Ornate","Luxe"]},
+  {name:"Silver, White & Ice Blue",era:"timeless",mood:"celestial",seasons:["winter","autumn"],colors:["#F6FAFD","#E1E9F0","#B7C7D8","#8796A7","#A7B2BF"],desc:"A winter palette of quiet drama. Ice blue and silver are as classic as snow — this palette has appeared in winter ballrooms for decades and will continue to. Particularly effective in venues with chandeliers and candlelight.",tags:["Ballroom","Chalet","Winter","Ethereal"]},
+  {name:"Dusty Rose & Champagne",era:"modern",mood:"romantic",seasons:["spring","autumn"],colors:["#FBF3F4","#E8C3C9","#D29AA5","#E4D1BE","#B28E6A"],desc:"Dusty rose at its most polished — paired with champagne rather than white, which gives the palette warmth and prevents it from reading as overly sweet. A versatile romantic palette that photographs beautifully.",tags:["Garden","Estate","Romantic","Polished"]},
+  {name:"Dusty Rose, Deep Green & Gold",era:"modern",mood:"moody",seasons:["autumn","winter"],colors:["#F8F1F2","#E0B8C1","#425546","#F0DAC2","#C19B5B"],desc:"A more complex reading of dusty rose — the deep forest green and antique gold give this palette a moody, grown-up quality that suits castle and estate weddings as much as intimate barn celebrations.",tags:["Estate","Castle","Barn","Romantic moody"]},
+  {name:"Terracotta & Sage",era:"2026",mood:"earthy",seasons:["summer","autumn"],colors:["#FBF4EF","#EFC5AC","#D07A55","#C7D2C0","#7F8F74"],desc:"One of the most commercially successful combinations of the 2020s, and still going strong in 2026. The warmth of terracotta and the coolness of sage create a natural balance that works equally well in barns, vineyards, and desert venues.",tags:["Barn","Vineyard","Desert","Boho"]},
+  {name:"Terracotta, Sand & Rust",era:"2026",mood:"rustic",seasons:["autumn"],colors:["#FAEFE5","#E1C6A9","#C35F3C","#8F442A","#5C3426"],desc:"A deeper, more rustic reading of terracotta — pushing into rust and sand. The darkest tones anchor this palette firmly in autumn. Works beautifully in barns and desert venues where the materials echo the palette.",tags:["Barn","Desert","Vineyard","Rustic"]},
+  {name:"Earthy Neutrals & Clay",era:"modern",mood:"rustic",seasons:["spring","summer","autumn","winter"],colors:["#F8F2EB","#E2CDB7","#C89A76","#9B6F4E","#5D4033"],desc:"A modern boho palette built entirely from the earth — clay, sand, tan, and coffee move naturally into one another. Feels organic and unpretentious. Works in backyard weddings as well as barn receptions.",tags:["Barn","Vineyard","Backyard","Organic"]},
+  {name:"Mocha, Olive & Cream",era:"2026",mood:"earthy",seasons:["autumn","winter"],colors:["#F6F1EA","#E0D1C0","#8B6B4E","#6B7D5E","#41362A"],desc:"Mocha Mousse — Pantone's direction for 2025 — paired with olive and warm cream creates a palette that sits at the intersection of quiet luxury and earthy warmth. One of the most-searched combination themes of 2025–2027.",tags:["Estate","Industrial","Barn","Sophisticated"]},
+  {name:"Caramel, Latte & Ivory",era:"modern",mood:"earthy",seasons:["autumn","winter"],colors:["#FBF4EC","#EED3B0","#C3915A","#8A5E36","#5C3B27"],desc:"A warm, intimate palette — the colours of a candlelit dinner table. Caramel and latte read as both autumnal and evergreen. Particularly suited to restaurant weddings and smaller, intimate gatherings.",tags:["Barn","Restaurant","Intimate","Cozy"]},
+  {name:"Lemon & Lavender",era:"modern",mood:"romantic",seasons:["spring","summer"],colors:["#FFF9E4","#FFE38C","#E4D4F5","#B9A2D8","#7B6DAB"],desc:"A palette of garden whimsy — lemon and lavender are cheerful individually and enchanting together. Light-handed florals and botanical styling suit this palette better than structured arrangements.",tags:["Garden","Greenhouse","Playful","Whimsical"]},
+  {name:"Pastel Garden Mix",era:"timeless",mood:"romantic",seasons:["spring"],colors:["#FFF6F7","#F8E1E4","#FBE6C8","#E4F0F5","#D9E9D4"],desc:"The ultimate spring palette — five soft pastels that belong together the way wildflowers do. Dreamy and airy, this palette works at its best with abundant mixed florals and natural light. A château favourite.",tags:["Garden","Château","Dreamy","Airy"]},
+  {name:"Sage & French Blue",era:"timeless",mood:"romantic",seasons:["spring","summer"],colors:["#F6F7F3","#CAD7C7","#5F7C60","#7E96BD","#314368"],desc:"A palette with a distinctly European sensibility — sage green with a French-blue accent recalls Provençal garden walls and linen tablecloths. Quietly romantic and editorial at the same time.",tags:["Estate","Garden","European","Romantic"]},
+  {name:"Lilac, Wisteria & Dove",era:"modern",mood:"romantic",seasons:["spring"],colors:["#FBF6FF","#E0D4F2","#C0B2DD","#A59DBF","#7B748F"],desc:"A palette of soft purple tones that moves from near-white to deep wisteria. Ethereal and distinctly spring. Works best in garden and greenhouse venues where the palette can echo the seasonal florals.",tags:["Garden","Greenhouse","Soft","Ethereal"]},
+  {name:"Mint, Blush & Peach",era:"modern",mood:"romantic",seasons:["spring","summer"],colors:["#F9FAF4","#D9F0E4","#F6D0D5","#F7C3A3","#B58A7A"],desc:"A bright, sweet palette from the Pinterest pastel era — still requested by couples who want their wedding to feel genuinely joyful rather than restrained. The mint grounds the blush and peach without cooling the palette.",tags:["Garden","Marquee","Playful","Sweet"]},
+  {name:"Peach, Coral & Cream",era:"modern",mood:"romantic",seasons:["summer"],colors:["#FFF5F1","#FAD0B8","#F7A27D","#FDD8C4","#C47D68"],desc:"Sunny and generous — a summer palette that reads as warmth rather than heat. Peach and coral are close enough in tone to feel cohesive; cream prevents the palette from becoming overly intense. Suits outdoor and boho settings.",tags:["Beach","Boho","Backyard","Sunny"]},
+  {name:"Coral, Turquoise & Sand",era:"modern",mood:"tropical",seasons:["summer"],colors:["#FDF4F2","#F58D7C","#4FB0B4","#F1D6B2","#2B6F73"],desc:"A classic destination palette — coral and turquoise against warm sand is the visual language of coastal celebration. High energy and photogenic. Best suited to outdoor venues with natural light.",tags:["Coastal","Destination","Tropical","Fun"]},
+  {name:"Island Citrus & Palm",era:"2026",mood:"tropical",seasons:["summer"],colors:["#FFF5E9","#F8A648","#F26E3D","#3C8054","#E2C390"],desc:"Pinterest's 2026 tropical couture palette in full expression. Island Citrus in its boldest form, paired with deep palm green and warm sand. For couples planning destination or outdoor summer weddings who want colour that travels.",tags:["2026 Trend","Tropical","Coastal","Bold"]},
+  {name:"Tropical Sunset",era:"modern",mood:"tropical",seasons:["summer"],colors:["#FFF1EC","#FEAC8F","#F86A7C","#F5474A","#E3A548"],desc:"Maximalist and unashamed — the colours of the last hour before dark at a beach wedding. This palette suits couples who want their celebration to feel like a party from the first photograph. High energy, high impact.",tags:["Beach","Rooftop","Destination","Maximalist"]},
+  {name:"Coastal Blue & Sand",era:"timeless",mood:"romantic",seasons:["summer"],colors:["#F7FAFB","#D9E4ED","#9FB6C8","#F1DEBF","#7A8E9E"],desc:"A timeless coastal palette — the blues of open water against warm sand. Relaxed without being casual. Works at yacht clubs, beach venues, and coastal estates where the setting reinforces the palette.",tags:["Coastal","Yacht club","Relaxed","Breezy"]},
+  {name:"Mediterranean Lemon & Olive",era:"modern",mood:"earthy",seasons:["spring","summer"],colors:["#FFF9E3","#F5D572","#D3A848","#8B9B5A","#5E6A3B"],desc:"Inspired by a hillside vineyard in southern France or northern Italy — lemon yellow and olive green are a combination the Mediterranean has perfected over centuries. Rustic-chic without any effort.",tags:["Villa","Vineyard","Sunny","Rustic-chic"]},
+  {name:"Burgundy & Blush",era:"timeless",mood:"romantic",seasons:["autumn","winter"],colors:["#FBF3F4","#F0CFD5","#8D2338","#DFA6B0","#5C1825"],desc:"A rich, timeless autumn palette. The depth of burgundy gives blush a grounded, sophisticated partner — without it, blush can feel too sweet; with it, the palette reads romantic and mature. A barn and estate favourite for autumn weddings.",tags:["Barn","Estate","Castle","Romantic"]},
+  {name:"Burgundy, Navy & Gold",era:"timeless",mood:"moody",seasons:["autumn","winter"],colors:["#F7F1EF","#991B35","#1C2743","#C9A45A","#E0CBB0"],desc:"Regal and dramatic — three colours with real authority. Burgundy, navy, and gold have appeared together in European court settings for centuries, which is exactly why they work so well in castles and ballrooms.",tags:["Castle","Ballroom","Regal","Dramatic"]},
+  {name:"Wine, Fig & Olive",era:"2026",mood:"moody",seasons:["autumn","winter"],colors:["#F5EFEC","#7F3043","#4C2A39","#6B7B4F","#C7B7A1"],desc:"A moody, intimate palette that belongs to autumn. Wine and fig read as deeply luxurious; olive anchors the combination with something organic. The stone neutral prevents it from becoming oppressive.",tags:["2026 Trend","Estate","Restaurant","Moody"]},
+  {name:"Plum, Lavender & Sage",era:"modern",mood:"rustic",seasons:["autumn","spring"],colors:["#FAF5FD","#DABDE7","#85528C","#C6D5C4","#6D7C68"],desc:"A boho-romantic palette with more depth than most. The plum grounds the lavender so it reads mature; sage green balances the purple tones with something natural. Suits barn and garden venues with an eclectic aesthetic.",tags:["Barn","Garden","Boho","Romantic"]},
+  {name:"Emerald, Navy & Gold",era:"timeless",mood:"moody",seasons:["autumn","winter"],colors:["#F5F1EB","#1C3B34","#18243D","#BEA25E","#846839"],desc:"The old-world palette — emerald, navy, and gold have furnished the great rooms of European estates for centuries. Formal without being unapproachable, and deeply photogenic. Suits any venue that matches the palette's ambition.",tags:["Estate","Ballroom","Old-world","Formal"]},
+  {name:"Emerald, Ivory & Black",era:"modern",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F6F4EF","#E8DFCF","#173C35","#121212","#BFA86A"],desc:"Glamorous and graphic — deep emerald and black against warm ivory is a combination that feels Art Deco and completely current simultaneously. Strong enough for city venues; distinctive enough to stand out anywhere.",tags:["City","Art Deco","Glamorous","Graphic"]},
+  {name:"Cobalt, White & Chrome",era:"2026",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F5F7FB","#FFFFFF","#2252BA","#0D1830","#C0C0C0"],desc:"A bold, editorial palette for couples who want visual impact. Cobalt sits at the intersection of classic navy and vivid blue — it photographs exceptionally well and works in any venue with strong architectural bones.",tags:["2026 Trend","Loft","Museum","Bold"]},
+  {name:"Dusty Blue & Mauve",era:"modern",mood:"romantic",seasons:["spring","autumn"],colors:["#F8F7FB","#CED7E7","#8195B8","#C7A4B7","#7B5A6E"],desc:"A palette of gentle nostalgia — dusty blue and mauve are hues associated with faded elegance and considered beauty. Works in estate and marquee settings where the aesthetic leans toward the romantic and slightly weathered.",tags:["Estate","Marquee","Romantic","Nostalgic"]},
+  {name:"Slate Blue, Sage & Stone",era:"modern",mood:"earthy",seasons:["spring","summer","autumn","winter"],colors:["#F5F6F8","#C7D1DD","#5C6F89","#C8D2C2","#8A8B82"],desc:"Understated and grounded — slate blue is a serious colour that asks nothing of its partners; sage and stone answer quietly. A palette for couples who value coherence over statement. Works in estate and barn settings.",tags:["Estate","Barn","Understated","Grounded"]},
+  {name:"Mauve, Taupe & Rose Gold",era:"modern",mood:"romantic",seasons:["autumn","winter"],colors:["#FAF4F6","#D9C0C8","#B19099","#BDA58E","#D9A99A"],desc:"A warm, muted palette with a distinctly city sensibility. Mauve and taupe are sophisticated neutrals; rose gold adds warmth without sweetness. Suits loft and hotel venues where the palette reads chic rather than bridal.",tags:["Loft","Hotel","Chic","Romantic"]},
+  {name:"Rustic Fall Spice",era:"modern",mood:"rustic",seasons:["autumn"],colors:["#FBEFE6","#ECA46D","#C75C3A","#846237","#5A3C28"],desc:"A harvest palette in full voice — amber, terracotta, rust, and espresso read as autumn without requiring a single leaf motif. Works beautifully in barn, vineyard, and forest settings where the season does the styling.",tags:["Barn","Vineyard","Forest","Harvest"]},
+  {name:"Pumpkin, Marigold & Espresso",era:"modern",mood:"rustic",seasons:["autumn"],colors:["#FDF1E0","#F39A3C","#F4C13A","#7A4A2A","#3F261B"],desc:"An exuberant harvest palette — pumpkin orange and marigold yellow against deep espresso brown. High energy and deeply seasonal. Best suited to couples who embrace the full drama of an autumn celebration.",tags:["Barn","Orchard","Harvest","Festive"]},
+  {name:"Sunflower Yellow, Navy & White",era:"timeless",mood:"rustic",seasons:["summer","autumn"],colors:["#FAFAF5","#F2C94C","#1C2A45","#E0E5ED","#937842"],desc:"A cheerful, timeless pairing that has decorated barns and countryside venues for generations. Sunflower yellow and navy are a natural contrast; white keeps the palette fresh. Works particularly well in outdoor and rural settings.",tags:["Ranch","Countryside","Cheerful","Rustic"]},
+  {name:"Magenta, Navy & Gold",era:"modern",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#FBF3F8","#D33682","#1C2340","#C7A458","#7F5279"],desc:"A palette that makes a statement without apology — magenta and navy is an unexpected combination that reads as glamorous and bold. The gold anchor stops it from becoming garish. Suits ballrooms and city venues.",tags:["City","Ballroom","Bold","Glamorous"]},
+  {name:"Fuchsia, Coral & Peach",era:"modern",mood:"tropical",seasons:["summer"],colors:["#FFF3F7","#F66BB1","#F6847A","#F7C29E","#B9506A"],desc:"Maximalist and joyful — a palette for couples who believe more is more. Fuchsia, coral, and peach together read as a garden in full summer bloom. Best for outdoor, beach, and destination weddings with strong natural light.",tags:["Beach","Destination","Maximalist","Fun"]},
+  {name:"Sage, Latte & Blush",era:"modern",mood:"rustic",seasons:["spring","summer","autumn","winter"],colors:["#FBF5F2","#D3E0D2","#BFA692","#EBCCD1","#8E7B6A"],desc:"A soft, modern boho combination — sage, latte, and blush move seamlessly from botanical to romantic without committing to either. One of the most versatile palettes on this list; works in barn, garden, and restaurant settings equally.",tags:["Barn","Garden","Restaurant","Modern boho"]},
+  {name:"Forest, Stone & Linen",era:"timeless",mood:"earthy",seasons:["autumn","winter"],colors:["#F5F3EE","#D8D2C5","#6F7B66","#394739","#8C7A66"],desc:"A palette of deep natural authority — forest green, cold stone, and aged linen. Restrained and serious. Works in estate and barn settings where the architecture and materials match the palette's seriousness.",tags:["Estate","Barn","Forest","Natural"]},
+  {name:"Charcoal, Dove & Champagne",era:"modern",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F5F4F2","#DBDEE4","#35363D","#BFAF93","#8C8272"],desc:"A minimal, chic palette with real warmth in the champagne accent. Charcoal and dove work in any venue; the champagne prevents the palette from reading as corporate or cold. Particularly effective in city and modern settings.",tags:["City","Modern venues","Minimal","Chic"]},
+  {name:"Opalescent Pearl & Chrome",era:"2026",mood:"celestial",seasons:["spring","summer","autumn","winter"],colors:["#F8F6FB","#E8DEE9","#D3D9E7","#B4BAC8","#C0C0C0"],desc:"The opalcore palette for 2026 — pearlescent whites and iridescent blue-grey with chrome. Otherworldly and quietly futuristic. Works in ballroom and modern city venues where lighting can be used to amplify the iridescent quality.",tags:["2026 Trend","Ballroom","Modern city","Futuristic"]},
+  {name:"Blushing Berry Garden",era:"modern",mood:"romantic",seasons:["spring"],colors:["#FDF4F7","#F4CAD7","#EB89A9","#9DCB8D","#6D3A52"],desc:"A spring garden palette with a berry twist — soft pinks anchored by a fresh green accent that reads as leaves and stems rather than a secondary colour. Fresh, romantic, and naturally photogenic.",tags:["Garden","Farm","Vineyard","Romantic"]},
+  {name:"Summer Wildflower Meadow",era:"2026",mood:"rustic",seasons:["summer"],colors:["#FFF6E7","#FFE082","#F36F6C","#F28CA6","#8BC765"],desc:"The palette of a wildflower meadow caught in full summer sun — warm yellow, wild red, soft pink, and meadow green. For couples who want their palette to feel found rather than designed. A 2026 trend toward nature-driven colour.",tags:["2026 Trend","Outdoor meadow","Barn","Playful"]},
+  {name:"Golden Orchard",era:"2026",mood:"earthy",seasons:["summer","autumn"],colors:["#FDF3EC","#F0C29A","#E6946D","#C4734E","#8A4B33"],desc:"A painterly palette built from the colours of ripe fruit — amber, apricot, and deep terracotta move like a gradient from harvest light to shadow. Earthy and warm; suits vineyard and estate venues in late summer and early autumn.",tags:["2026 Trend","Estate","Vineyard","Painterly"]},
+  {name:"Buttercream Tone-on-Tone",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#FEFBF1","#F9E9BB","#F2D796","#E5C47E","#C0B57A"],desc:"Five warm, luminous yellows from the palest buttercream to deep honey. Monochromatic layering in the warmest register — this palette feels like late afternoon light in a stone church. Works in almost any setting.",tags:["Estate","Church","Classic","Understated"]},
+  {name:"Black Cherry & Aubergine",era:"2026",mood:"moody",seasons:["autumn","winter"],colors:["#F4ECEA","#C49AA4","#5D1E2C","#4C213D","#2A141F"],desc:"A deeply atmospheric 2026 palette — black cherry and aubergine are among the darkest possible wedding colours, used here in a careful gradient from dusty pink through to near-black. For couples who want genuine drama.",tags:["2026 Trend","Ballroom","Castle","Dark luxurious"]},
+  {name:"Tomato, Peach & Lavender",era:"2026",mood:"retro",seasons:["summer"],colors:["#FFF3EC","#F27353","#F7A87B","#D1B1E6","#87406B"],desc:"A bold, unexpected 2026 palette that pairs warm tomato red with cool lavender — a combination that should clash but somehow doesn't. The peach middle tone is the bridge. Best suited to creative venues and couples who want visual surprise.",tags:["2026 Trend","Creative venues","Rooftops","Bold"]},
+  {name:"Sage & Cream Minimal",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#F9F7F1","#E4E0D5","#C8D5C4","#99AF95","#5E705A"],desc:"Sage at its most restrained — a minimal palette that relies on the natural variation within green rather than contrast with other hues. Clean, calm, and versatile. Works in every setting from greenhouse to estate.",tags:["Garden","Greenhouse","Calm","Minimal"]},
+  {name:"Dusty Rose & Terracotta",era:"modern",mood:"earthy",seasons:["autumn","spring"],colors:["#FBF1F2","#E3BAC2","#C7787A","#C97B55","#8A4A3C"],desc:"A grounded, earthy take on dusty rose — the terracotta partner gives it warmth and stops the palette from reading as purely romantic. Balanced between feminine and organic, this palette works beautifully in barn and vineyard settings.",tags:["Barn","Vineyard","Romantic","Grounded"]},
+  {name:"Midnight Blue & Gold",era:"timeless",mood:"moody",seasons:["spring","summer","autumn","winter"],colors:["#F5F3EE","#D9CFBF","#1A2537","#0F1725","#C8A861"],desc:"The evening wedding palette — midnight blue pushed darker than navy, paired with warm gold. The near-black depth gives this palette genuine drama. Works in any formal venue and any season; particularly strong in winter.",tags:["Ballroom","Museum","Sophisticated","Moody"]},
+  {name:"Fine Art Pastel Canvas",era:"modern",mood:"romantic",seasons:["spring"],colors:["#FDF7F3","#F4D6CE","#F4E3B8","#CFD8E9","#C7C3D8"],desc:"A palette that reads like a painting — soft blush, warm ivory, hazy blue, and muted lavender create a colour story more impressionist than bridal. For couples who want their wedding photographs to look like fine art.",tags:["Château","Gallery","Artistic","Airy"]},
+  {name:"Dockside Bouquet",era:"modern",mood:"romantic",seasons:["spring","summer"],colors:["#FEC7C2","#FEE2E0","#D6E2AD","#C1CEFF","#C6ADFE"],desc:"A soft, modern pastel palette with a distinctly coastal sensibility — pink, green, blue, and lavender pastel tones that echo a garden overlooking water. Light-handed and whimsical, this palette suits relaxed, joyful celebrations.",tags:["Coastal","Lakeside","Soft","Whimsical"]},
+  {name:"Sweet Blooms",era:"modern",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#62B5CB","#F2E8E4","#FCFDF8","#F8C5CA","#EAB2BD"],desc:"An unusual palette that leads with teal blue as its most vivid point, balanced by blush pinks and soft white. Fresh, romantic, and quietly distinctive. Works in garden and hotel settings where the styling can keep up with the colour.",tags:["Garden","Hotel","Fresh","Romantic"]},
+  {name:"Chartreuse Garden Twist",era:"2026",mood:"modern",seasons:["spring","summer"],colors:["#F7FCEB","#D6F279","#AFD94F","#7D9B4F","#505A39"],desc:"A palette that commits fully to chartreuse — a genuinely 2026 move. Five tones of yellow-green from the palest lime to deep forest. For couples who want their palette to be talked about. Best in garden and greenhouse settings.",tags:["2026 Trend","Garden","Greenhouse","Vibrant"]},
+  {name:"Deep Sunset Citrus",era:"modern",mood:"earthy",seasons:["summer","autumn"],colors:["#FFF3E7","#F7B26A","#E9773D","#B9482D","#6B2B22"],desc:"The colours of the last hour of light at an outdoor summer wedding — warm amber fading into terracotta and deep rust. A sunset palette for couples who want their wedding to feel like a golden hour that never ends.",tags:["Desert","Barn","Rooftop","Warm"]},
+  {name:"Funky Fuchsia & Dusty Blue",era:"2026",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#FBF3F8","#D8488E","#8F2E6C","#A8BADA","#6A7A9D"],desc:"A bold, editorial 2026 palette — fuchsia and dusty blue is a combination that challenges the expected. The contrast is unexpected enough to feel genuinely original while remaining wearable across florals, attire, and stationery.",tags:["2026 Trend","City","Creative spaces","Editorial"]},
+  {name:"Modern Chartreuse & Stone",era:"2026",mood:"modern",seasons:["spring","summer"],colors:["#F8F8F0","#E2F079","#B9CF57","#B6B7A3","#5D5F49"],desc:"Chartreuse paired with stone grey — a combination that reads as architectural and considered rather than whimsical. The grey anchor is what makes this palette work in modern loft and museum venues rather than just gardens.",tags:["2026 Trend","Loft","Museum","Garden"]},
+  {name:"Vintage Mauve & Blush",era:"vintage",mood:"romantic",seasons:["spring","autumn"],colors:["#FBF4F7","#E1C5CF","#C295A5","#B47F89","#7A5961"],desc:"A palette of faded floral wallpaper and afternoon light through lace curtains — vintage mauve and blush in a progression from palest pink to deep rose. Beautiful in vintage venues and estate settings with aged details.",tags:["Vintage venues","Estate","Soft","Vintage"]},
+  {name:"Red, Orange & Moss Vintage",era:"vintage",mood:"retro",seasons:["autumn"],colors:["#FBEFE9","#C9493D","#F07E3C","#6C7A43","#3B442A"],desc:"A 1970s-inflected autumn palette — warm red-orange and moss green are the colours of a vintage harvest photograph. For couples who want their autumn wedding to feel genuinely retro rather than seasonally expected.",tags:["Barn","Orchard","Retro","Warm"]},
+  {name:"Rust, Burgundy & Olive",era:"vintage",mood:"moody",seasons:["autumn","winter"],colors:["#F6EEE9","#C15632","#7D1C31","#6B7044","#3F3B30"],desc:"A dramatic, vintage-inflected palette for deep autumn and winter. Rust and burgundy are close enough in temperature to feel harmonious; olive adds the organic note that stops the palette from reading as purely dramatic.",tags:["Barn","Industrial","Dramatic","Vintage"]},
+  {name:"Burgundy, Tan & Wine",era:"vintage",mood:"rustic",seasons:["autumn","winter"],colors:["#F7F0EA","#CAA587","#7D2334","#4A1622","#B26A60"],desc:"A warm, romantic palette rooted in vintage sensibility — burgundy and wine against tan and ivory read as a grand old manor rather than a modern ballroom. Timeless in a way that requires genuine confidence to pull off.",tags:["Estate","Old manor","Warm","Romantic"]},
+  {name:"Hunter Green, Pink & Gold",era:"vintage",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#F9F3F5","#E7C1CC","#264734","#B8995C","#7E6750"],desc:"An unexpected but enduring combination — hunter green and blush pink is a pairing that feels simultaneously vintage and contemporary. The gold accent gives it occasion. Works in greenhouse and estate settings particularly well.",tags:["Estate","Greenhouse","Romantic","Vintage"]},
+  {name:"Grey, Champagne & Brown",era:"vintage",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#F5F4F1","#D3D5DA","#C9AF8F","#8B6D54","#4C3B33"],desc:"A neutral palette of classic restraint — grey, champagne, and warm brown are neither bridal nor fashion-forward, which is precisely their strength. They let the venue, the flowers, and the couple do the work.",tags:["Loft","Estate","Neutral","Classic"]},
+  {name:"Stroke of Midnight",era:"vintage",mood:"moody",seasons:["autumn","winter"],colors:["#F5F3F9","#C0B2D8","#582A6A","#1B2745","#A9B2C1"],desc:"A fairytale palette — deep plum and midnight navy with soft lavender and a cool silver-grey. The name says everything: this is a palette for a reception that starts at dusk and ends late. Works in ballrooms and estate venues.",tags:["Ballroom","Estate","Fairytale","Dramatic"]},
+  {name:"Pastel Wedding Dream",era:"timeless",mood:"romantic",seasons:["spring"],colors:["#BED7D1","#F7EBC3","#FBD6C6","#F8E1E7","#F8D1E0"],desc:"A full pastel palette in four gentle tones — teal, butter, peach, and blush that belong together the way a garden in April belongs to spring. Dreamy and delicate; best in abundant, mixed floral styling.",tags:["Garden","Marquee","Delicate","Dreamy"]},
+  {name:"Pear & Pastel Peach",era:"modern",mood:"romantic",seasons:["spring"],colors:["#FEFAF2","#F8E0C4","#F3B78A","#C4D6A6","#7C8E63"],desc:"A fresh, soft spring palette — pear green and pastel peach are an unusual pairing that reads as both organic and romantic. The greens stay on the soft side so they partner rather than contrast with the warm peach tones.",tags:["Garden","Backyard","Soft","Organic"]},
+  {name:"Seafoam & Blush Breeze",era:"modern",mood:"romantic",seasons:["spring","summer"],colors:["#F6FBFA","#CDEBE6","#98D3CB","#F5CDD5","#D79FAB"],desc:"A coastal-garden palette — seafoam and blush are unlikely partners that work because the cool green and warm pink sit at similar saturation levels. Light, romantic, and particularly suited to daytime celebrations.",tags:["Coastal","Garden","Light","Romantic"]},
+  {name:"Dusty Teal & Sand",era:"modern",mood:"earthy",seasons:["spring","summer","autumn","winter"],colors:["#F4F7F6","#C7D6D5","#619296","#E2D3C0","#856B57"],desc:"A relaxed, modern palette that reads as coastal without being literal about it. Dusty teal and warm sand are a grounded combination that works in loft and greenhouse settings as well as outdoor venues.",tags:["Loft","Greenhouse","Relaxed","Modern"]},
+  {name:"Sage, Navy & Blush",era:"timeless",mood:"romantic",seasons:["spring","autumn"],colors:["#F6F3F6","#C9D7C8","#1F2D45","#E7C7CD","#8A7D71"],desc:"One of the most consistently popular combination requests — sage, navy, and blush is the romantic-formal palette. Each colour works on the others: sage softens the navy; navy grounds the blush; blush warms the sage. Universally wearable.",tags:["Barn","Estate","Romantic","Refined"]},
+  {name:"Sage, Navy & Coral",era:"modern",mood:"romantic",seasons:["summer"],colors:["#F5F7F4","#C4D3C2","#202E45","#F07F60","#8A5C54"],desc:"A livelier variation on the sage-and-navy classic — coral replaces blush, giving the palette warmth and movement. Suits summer weddings and coastal settings where the energy of the palette matches the setting.",tags:["Coastal","Barn","Fresh","Lively"]},
+  {name:"Sage, Navy & Gold",era:"timeless",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F6F5F1","#CBD8C8","#1E2940","#C7A35E","#8F7651"],desc:"The elevated version of the sage-and-navy pairing — gold replaces the colourful third accent, making this a more formal, classic reading. Works in church ceremonies and estate venues as well as it does in modern settings.",tags:["Church","Estate","Elegant","Classic"]},
+  {name:"Dusty Blue & Terracotta",era:"modern",mood:"earthy",seasons:["autumn","summer"],colors:["#F5F7FA","#C8D5E6","#7F95B4","#EAA584","#B66D4A"],desc:"A combination of opposites that finds its balance — cool dusty blue and warm terracotta sit at similar saturation levels, which is why they work together. A popular and considered choice for barn and vineyard settings.",tags:["Barn","Vineyard","Balanced","Artistic"]},
+  {name:"Dusty Blue & Butter Yellow",era:"modern",mood:"romantic",seasons:["spring"],colors:["#F7FAFC","#CBD8EB","#7D93B6","#FFE4A7","#C59F61"],desc:"A gentle, sunny palette — dusty blue and butter yellow are the colours of a clear spring morning. The gold accent stops the yellow from reading as too bright. Works in garden and estate settings where natural light is plentiful.",tags:["Garden","Estate","Gentle","Sunny"]},
+  {name:"Dusty Blue & Sage",era:"modern",mood:"earthy",seasons:["spring","summer","autumn","winter"],colors:["#F6F8FA","#C8D4E4","#7D90AA","#C6D6C3","#728168"],desc:"A palette of considered calm — two muted, desaturated tones that belong naturally together. Dusty blue and sage are both colours that recede rather than demand attention, which makes this palette work in any setting.",tags:["Estate","Greenhouse","Calm","Refined"]},
+  {name:"Mocha & Dusty Blue",era:"modern",mood:"earthy",seasons:["autumn","winter"],colors:["#F6F4F2","#DFCDBA","#8C6953","#AFBBD0","#6D7587"],desc:"An unusual pairing that captures the 2025–2026 Mocha Mousse movement meeting the perennial dusty blue trend. Warm mocha and cool blue sit at similar luminance levels, creating an elegant tension that photographs beautifully.",tags:["2026 Trend","Loft","Estate","Modern"]},
+  {name:"Warm Neutrals & Blush",era:"timeless",mood:"romantic",seasons:["spring","summer","autumn","winter"],colors:["#FBF4EF","#E8D4C4","#C6A489","#F0C4C4","#8C6B61"],desc:"The approachable palette — warm neutrals and soft blush ask very little of a bride and give a great deal back. Universally flattering, universally wearable, and suitable for any venue or setting. The safe choice that never looks like a safe choice.",tags:["Any venue","Soft","Approachable","Timeless"]},
+  {name:"Stone, Oyster & Black",era:"modern",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F4F3F1","#D7D1C8","#B2A899","#2C2C2F","#6B6357"],desc:"An architectural, minimal palette — stone, oyster, and black read as the colours of a contemporary museum or gallery. No warmth, no softness; just structure. For couples who want their aesthetic to feel designed rather than decorated.",tags:["City","Museum","Architectural","Minimal"]},
+  {name:"Copper, Olive & Ivory",era:"modern",mood:"earthy",seasons:["autumn"],colors:["#F7F3EE","#E0C5AB","#B66C40","#727B52","#3D4331"],desc:"A rich autumn palette of copper warmth and olive depth — these are the colours of an orchard in October, warm and generous. The ivory neutral keeps the palette from becoming heavy. Works in barn and estate settings.",tags:["Barn","Estate","Earthy","Luxe"]},
+  {name:"Rosewood & Linen",era:"vintage",mood:"romantic",seasons:["autumn","winter"],colors:["#FBF4F1","#E2C8BD","#B76C68","#7B4241","#4A2A2A"],desc:"A warm, intimate vintage palette — rosewood is a colour with history, associated with antique furniture and aged textiles. Paired with linen, it reads as nostalgic without being dated. Suits historic venues and restaurant settings.",tags:["Historic venues","Restaurant","Intimate","Nostalgic"]},
+  {name:"Clay, Blush & Olive",era:"modern",mood:"earthy",seasons:["autumn","spring"],colors:["#FAF2EE","#D99E84","#F0C0C1","#7E8C61","#4E5B3E"],desc:"An organic, romantic palette — clay and blush feel like sun-baked terracotta and rose petals; olive anchors the combination with something grounded and natural. Works in barn, vineyard, and backyard settings.",tags:["Barn","Vineyard","Backyard","Organic"]},
+  {name:"Butter, Sage & Stone",era:"modern",mood:"romantic",seasons:["spring","summer"],colors:["#FFF8E9","#F4E2AC","#C6D3BF","#8C9F8A","#6A6D63"],desc:"A luminous spring palette — warm butter yellow, botanical sage, and cool stone create a combination that reads as afternoon light in a country garden. Soft and considered without being precious.",tags:["Garden","Estate","Soft","Luminous"]},
+  {name:"Raspberry & Blush",era:"2026",mood:"romantic",seasons:["spring"],colors:["#FDF3F6","#F2CBD6","#E45982","#F0E1E8","#8E3C55"],desc:"A 2026 palette that demonstrates how far the pink trend has evolved — raspberry and blush together read as contemporary rather than traditional. Fresh, flirty, and confident. Works best in garden and marquee settings.",tags:["2026 Trend","Garden","Marquee","Fresh"]},
+  {name:"Strawberry Lemonade",era:"2026",mood:"retro",seasons:["summer"],colors:["#FFF6EE","#FAD07E","#F06A79","#F29DB0","#EDC2C4"],desc:"A joyful, youthful 2026 palette — strawberry pink and lemon yellow together are the colours of a summer party rather than a formal ceremony. For couples who want their outdoor wedding to feel genuinely fun.",tags:["2026 Trend","Outdoor","DIY","Fun"]},
+  {name:"Honey & Copper Beech",era:"2026",mood:"earthy",seasons:["summer","autumn"],colors:["#FBF3E8","#F0C673","#D39A52","#8A5B3D","#4A3125"],desc:"A golden, abundant palette inspired by the colours of a late-summer orchard — honey, amber, warm copper, and deep espresso. For couples who want their palette to feel rich and harvest-ready rather than rustic and rough.",tags:["2026 Trend","Vineyard","Tented","Warm"]},
+  {name:"Cream, Butter & Soft Green",era:"timeless",mood:"quietluxury",seasons:["spring","summer","autumn","winter"],colors:["#FEFBF4","#F8EABC","#F2DFA4","#D2E2CA","#9AB291"],desc:"A gentle, luminous palette that lives in the lightest register — cream, butter, and soft green feel like a garden in early morning light. Elegant without effort, and suited to almost any venue or setting.",tags:["Classic venues","Elegant","Gentle","Timeless"]},
+  {name:"Vintage Peach & Sage",era:"vintage",mood:"rustic",seasons:["spring","summer"],colors:["#FFF5F0","#F4C8A8","#E79E7B","#C9D6C1","#7C8A70"],desc:"A nostalgic, romantic palette — vintage peach has none of the brightness of coral, which makes it naturally beautiful with sage. Works in vintage barn venues and cottage gardens where the setting echoes the palette.",tags:["Vintage barns","Gardens","Nostalgic","Romantic"]},
+  {name:"Dusty Mint & Mauve",era:"modern",mood:"romantic",seasons:["spring"],colors:["#F6FAF7","#CDE4D9","#8AB9A3","#D6BBCF","#8C6E83"],desc:"A soft, dreamy spring palette — dusty mint and mauve are both muted enough to sit together without competing. The combination feels vintage and modern simultaneously, and works beautifully in garden and greenhouse settings.",tags:["Garden","Greenhouse","Soft","Dreamy"]},
+  {name:"Sea Glass & Sand",era:"timeless",mood:"earthy",seasons:["summer"],colors:["#F4FAF9","#C0E0DD","#7FB8B4","#F0DDC3","#8B7A68"],desc:"A coastal palette of genuine calm — sea glass and sand are as natural a combination as the sea itself. Works in beach and lakeside venues where the palette echoes the setting.",tags:["Beach","Lakeside","Calm","Coastal"]},
+  {name:"Apricot, Rose & Wine",era:"modern",mood:"romantic",seasons:["autumn"],colors:["#FFF4F0","#F8C1A4","#E8959A","#8B2740","#5B1727"],desc:"A warm, layered autumn palette — apricot and rose move naturally into deep wine, creating a gradient from warm light to rich shadow. The depth of the wine anchor gives this palette genuine occasion.",tags:["Estate","Restaurant","Romantic","Rich"]},
+  {name:"Linen, Sage & Charcoal",era:"timeless",mood:"modern",seasons:["spring","summer","autumn","winter"],colors:["#F6F3EE","#E0D5C7","#C4D1C0","#7F8D7A","#3B3F3A"],desc:"A clean, grounded palette — linen, sage, and charcoal are the three most reliable neutrals in wedding design. Together they create something that is neither romantic nor minimal but simply, reliably considered. Works anywhere.",tags:["Any venue","Clean","Grounded","Timeless"]},
+  {name:"Cloud, Lilac & Silver",era:"modern",mood:"celestial",seasons:["spring","winter"],colors:["#F7F7FB","#E0E1F3","#C8C4E4","#A6A4C5","#9FA6B6"],desc:"A dreamy, modern palette of cool purples and silver — cloud white, hazy lilac, and muted silver grey create a palette that feels like a winter morning or a garden at dusk. Works in ballroom and loft settings.",tags:["Ballroom","Loft","Dreamy","Modern"]}
+];
+
+// ── CURATED RENDER ─────────────────────────────────────────────────────────────
+function renderCurated(){
+  const era=document.getElementById('filterEra').value;
+  const mood=document.getElementById('filterMood').value;
+  const season=document.getElementById('filterSeason').value;
+  const eraL={timeless:'Timeless Classic','2026':'2026 Trend','2027':'2027 Direction',modern:'Modern 2020s',vintage:'Vintage-inspired'};
+  const eraOrder={timeless:0,'2026':1,'2027':2,modern:3,vintage:4};
+  const moodOrder={romantic:0,quietluxury:1,modern:2,earthy:3,rustic:4,moody:5,celestial:6,retro:7,nostalgic:8,tropical:9};
+
+  const filtered=palettes.filter(p=>{
+    if(era!=='all'&&p.era!==era)return false;
+    if(mood!=='all'&&p.mood!==mood)return false;
+    if(season!=='all'&&!p.seasons.includes(season))return false;
+    return true;
+  }).sort((a,b)=>{
+    const ed=(eraOrder[a.era]??99)-(eraOrder[b.era]??99);
+    if(ed!==0)return ed;
+    return (moodOrder[a.mood]??99)-(moodOrder[b.mood]??99);
+  });
+
+  const grid=document.getElementById('curatedGrid');
+  if(!filtered.length){grid.innerHTML=`<div style="text-align:center;padding:44px 20px;color:var(--muted);font-size:0.82rem;letter-spacing:0.06em;">No palettes match these filters.<br>Try broadening your selection.</div>`;return;}
+
+  grid.innerHTML=filtered.map(p=>`
+    <div class="palette-card">
+      <div class="card-strip">${p.colors.map(c=>`<div class="card-swatch" style="background:${c}" onclick="copyHex('${c}')" title="${c}"></div>`).join('')}</div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-era">${eraL[p.era]||p.era}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="hex-grid" style="margin-top:12px;margin-bottom:0">${p.colors.map(c=>`<div class="hex-pill" onclick="copyHex('${c}')"><div class="hex-dot" style="background:${c}"></div><div class="hex-pill-text"><span class="hex-pill-code">${c}</span></div></div>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── MODE SWITCH ────────────────────────────────────────────────────────────────
+function switchMode(mode){
+  document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&mode==='colour')||(i===1&&mode==='curated')));
+  document.getElementById('colour-mode').style.display=mode==='colour'?'block':'none';
+  document.getElementById('curated-mode').style.display=mode==='curated'?'block':'none';
+}
+
+renderCurated();
+</script>
+</body>
+</html>
